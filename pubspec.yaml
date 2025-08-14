@@ -1,0 +1,51 @@
+name: hbfu_alex
+description: "StudySee for HBFU by Alex"
+
+publish_to: "none"
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  chinese_font_library: ^1.2.0
+  another_flushbar: ^1.12.30
+  shared_preferences: ^2.5.3
+  window_manager: ^0.5.1
+  encrypt: 5.0.3
+  dio: 5.9.0
+  provider: ^6.1.5
+  flutter_colorpicker: 1.1.0
+  url_launcher: ^6.3.2
+  cupertino_icons: ^1.0.8
+  rust_lib_hbfu_alex:
+    path: rust_builder
+  flutter_rust_bridge: 2.11.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: 6.0.0
+  integration_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+  inno_bundle: ^0.9.0
+
+flutter_icons:
+  android: "launcher_icon"
+  image_path: "assets/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+inno_bundle:
+  id: a02fdc1f-2396-5ae4-b62e-2c69ffc783af
+  publisher: Alex
+  name: StudySee
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon.png
