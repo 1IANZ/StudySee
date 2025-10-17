@@ -20,16 +20,33 @@ class _LoginState extends State<Login> {
   final studentIDController = TextEditingController();
   final vpnPasswordController = TextEditingController();
   final passwordController = TextEditingController();
+  final captchaController = TextEditingController();
 
   bool passwordVisible = false;
   bool vpnPasswordVisible = false;
   bool savePassword = true;
   bool vpnDifferent = false;
   bool _isLoading = false;
+  Uint8List? _captchaImage;
+
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+    _loadCaptcha();
+  }
+
+  Future<void> _loadCaptcha() async {
+    try {
+      final captchaData = await apiGetCaptcha();
+      setState(() {
+        _captchaImage = captchaData;
+      });
+    } catch (e) {
+      if (mounted) {
+        showErrorFlushbar(context, '加载验证码失败');
+      }
+    }
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -51,10 +68,16 @@ class _LoginState extends State<Login> {
     studentIDController.dispose();
     vpnPasswordController.dispose();
     passwordController.dispose();
+    captchaController.dispose();
     super.dispose();
   }
 
-  void _onLogin(String studentID, String password, String vpnPassword) async {
+  void _onLogin(
+    String studentID,
+    String password,
+    String vpnPassword,
+    String captcha,
+  ) async {
     setState(() {
       _isLoading = true;
     });
@@ -64,6 +87,7 @@ class _LoginState extends State<Login> {
         username: studentID,
         vpnPassword: vpnPassword,
         oaPassword: password,
+        captcha: captcha,
       );
 
       if (!mounted) return;
@@ -93,6 +117,8 @@ class _LoginState extends State<Login> {
     } catch (_) {
       if (!mounted) return;
       showErrorFlushbar(context, '登录失败');
+      _loadCaptcha();
+      captchaController.clear();
     } finally {
       setState(() {
         _isLoading = false;
@@ -200,6 +226,58 @@ class _LoginState extends State<Login> {
     );
   }
 
+  Widget _buildCaptchaField() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: _loadCaptcha,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: 120,
+            height: 48,
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: _captchaImage != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(_captchaImage!, fit: BoxFit.cover),
+                  )
+                : const Center(child: CircularProgressIndicator()),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: TextFormField(
+            controller: captchaController,
+            decoration: InputDecoration(
+              labelText: 'Captcha',
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              prefixIcon: const Icon(Icons.verified_user),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _loadCaptcha,
+                tooltip: '刷新验证码',
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return '请输入验证码';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildOptionsRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,7 +325,8 @@ class _LoginState extends State<Login> {
                   final vpnPassword = vpnDifferent
                       ? vpnPasswordController.text.trim()
                       : password;
-                  _onLogin(studentID, password, vpnPassword);
+                  final captcha = captchaController.text.trim();
+                  _onLogin(studentID, password, vpnPassword, captcha);
                 }
               },
         child: Ink(
@@ -357,6 +436,8 @@ class _LoginState extends State<Login> {
                         const SizedBox(height: 16),
                         _buildVpnPasswordField(),
                         _buildPasswordField(),
+                        const SizedBox(height: 16),
+                        _buildCaptchaField(),
                         const SizedBox(height: 6),
                         _buildOptionsRow(),
                         const SizedBox(height: 12),

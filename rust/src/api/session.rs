@@ -1,11 +1,11 @@
-use std::sync::{Arc};
-use std::collections::HashMap;
+use crate::api::{aescbc::aes_cbc_encrypt, conwork::encode_inp};
 use regex::Regex;
 use reqwest::header::HeaderMap;
 use reqwest::Client;
 use reqwest_cookie_store::{CookieStore, CookieStoreMutex};
-use crate::api::{aescbc::aes_cbc_encrypt, conwork::encode_inp};
-
+use std::collections::HashMap;
+use std::sync::Arc;
+#[derive(Clone)]
 pub struct HttpSession {
     pub client: Client,
     pub _cookie_store: Arc<CookieStoreMutex>,
@@ -23,6 +23,30 @@ impl HttpSession {
             client,
             _cookie_store: cookie_store,
         }
+    }
+    pub async fn get_captcha(&self) -> Result<Vec<u8>, String> {
+        let r = rand::random::<f64>();
+        let url = format!(
+            "https://oa-443.v.hbfu.edu.cn/backstage/cas/captcha.jpg?r={}",
+            r
+        );
+        let mut headers = HeaderMap::new();
+        headers.insert("Content-Type", "text/html;charset=utf-8".parse().unwrap());
+        headers.insert("Vary", "Accept-Encoding".parse().unwrap());
+        headers.insert("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36".parse().unwrap());
+        let resp = self
+            .client
+            .get(&url)
+            .headers(headers)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let status = resp.status();
+        if !status.is_success() {
+            return Err(format!("获取验证码失败: {}", status));
+        }
+        let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+        Ok(bytes.to_vec())
     }
 
     pub async fn get_flow_execution_key(&self) -> Result<String, String> {
@@ -50,15 +74,18 @@ impl HttpSession {
         &self,
         username: &str,
         password: &str,
+        captcha: &str,
     ) -> Result<bool, String> {
-        let  flow_execution_key = self.get_flow_execution_key().await?;
-        let encrypted_password = aes_cbc_encrypt(password).map_err(|e| format!("密码加密失败: {}", e))?;
+        let flow_execution_key = self.get_flow_execution_key().await?;
+        let encrypted_password =
+            aes_cbc_encrypt(password).map_err(|e| format!("密码加密失败: {}", e))?;
 
         let mut form_data = HashMap::new();
         form_data.insert("username", username);
         form_data.insert("password", &encrypted_password);
         form_data.insert("execution", &flow_execution_key);
         form_data.insert("_eventId", "submit");
+        form_data.insert("captcha", captcha);
         form_data.insert("rememberMe", "false");
         form_data.insert("domain", "oa-443.v.hbfu.edu.cn");
 
@@ -77,10 +104,7 @@ impl HttpSession {
 
     pub async fn access_jwxt(&self) -> Result<bool, String> {
         let mut headers = HeaderMap::new();
-        headers.insert(
-            "Content-Type",
-            "text/html;charset=utf-8".parse().unwrap(),
-        );
+        headers.insert("Content-Type", "text/html;charset=utf-8".parse().unwrap());
         headers.insert("Vary", "Accept-Encoding".parse().unwrap());
         headers.insert(
             "User-Agent",
@@ -125,8 +149,9 @@ impl HttpSession {
         username: &str,
         vpn_password: &str,
         oa_password: &str,
+        captcha: &str,
     ) -> Result<String, String> {
-        let vpn_login_result = self.login_vpn(username, vpn_password).await?;
+        let vpn_login_result = self.login_vpn(username, vpn_password, captcha).await?;
         if !vpn_login_result {
             return Err("VPN登录失败,请检查账号密码".to_string());
         }
@@ -143,5 +168,3 @@ impl HttpSession {
         Ok("登录成功".to_string())
     }
 }
-
-

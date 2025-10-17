@@ -1424,6 +1424,7 @@ dependencies = [
  "base64",
  "flutter_rust_bridge",
  "once_cell",
+ "rand 0.9.2",
  "regex",
  "reqwest",
  "reqwest_cookie_store",

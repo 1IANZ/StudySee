@@ -33,7 +33,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4
-  inno_bundle: ^0.9.0
+  inno_bundle: 0.11.2
 
 flutter_icons:
   android: "launcher_icon"

@@ -27,6 +27,7 @@
 
 use crate::api::aescbc::*;
 use crate::api::session::*;
+use crate::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
@@ -39,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2007456496;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1761466720;
 
 // Section: executor
 
@@ -325,6 +326,7 @@ fn wire__crate__api__session__HttpSession_complete_login_impl(
             let api_username = <String>::sse_decode(&mut deserializer);
             let api_vpn_password = <String>::sse_decode(&mut deserializer);
             let api_oa_password = <String>::sse_decode(&mut deserializer);
+            let api_captcha = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, String>(
@@ -351,8 +353,65 @@ fn wire__crate__api__session__HttpSession_complete_login_impl(
                             &api_username,
                             &api_vpn_password,
                             &api_oa_password,
+                            &api_captcha,
                         )
                         .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__session__HttpSession_get_captcha_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "HttpSession_get_captcha",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<HttpSession>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, String>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::session::HttpSession::get_captcha(&*api_that_guard).await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -663,6 +722,41 @@ fn wire__crate__api__simple__api_exam_impl(
         },
     )
 }
+fn wire__crate__api__simple__api_get_captcha_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "api_get_captcha",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, String>(
+                    (move || async move {
+                        let output_ok = crate::api::simple::api_get_captcha().await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__simple__api_login_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -688,6 +782,7 @@ fn wire__crate__api__simple__api_login_impl(
             let api_username = <String>::sse_decode(&mut deserializer);
             let api_vpn_password = <String>::sse_decode(&mut deserializer);
             let api_oa_password = <String>::sse_decode(&mut deserializer);
+            let api_captcha = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, String>(
@@ -696,6 +791,7 @@ fn wire__crate__api__simple__api_login_impl(
                             api_username,
                             api_vpn_password,
                             api_oa_password,
+                            api_captcha,
                         )
                         .await?;
                         Ok(output_ok)
@@ -1986,59 +2082,66 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        7 => wire__crate__api__session__HttpSession_get_flow_execution_key_impl(
+        7 => wire__crate__api__session__HttpSession_get_captcha_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        8 => wire__crate__api__session__HttpSession_new_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__aescbc__aes_cbc_encrypt_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__simple__api_course_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__simple__api_dekt_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__simple__api_dekt_detail_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__simple__api_elective_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__simple__api_exam_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__simple__api_login_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__simple__api_plan_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__simple__api_score_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__simple__api_semester_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__simple__api_student_info_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__conwork__encode_inp_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__jwxt__course__parse_course_schedule_impl(
+        8 => wire__crate__api__session__HttpSession_get_flow_execution_key_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__jwxt__dekt__parse_dekt_impl(port, ptr, rust_vec_len, data_len),
-        24 => {
+        9 => wire__crate__api__session__HttpSession_new_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__aescbc__aes_cbc_encrypt_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__simple__api_course_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__simple__api_dekt_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__simple__api_dekt_detail_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__simple__api_elective_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__simple__api_exam_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__simple__api_get_captcha_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__simple__api_login_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__simple__api_plan_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__simple__api_score_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__simple__api_semester_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__simple__api_student_info_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__conwork__encode_inp_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__jwxt__course__parse_course_schedule_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        25 => wire__crate__api__jwxt__dekt__parse_dekt_impl(port, ptr, rust_vec_len, data_len),
+        26 => {
             wire__crate__api__jwxt__dekt__parse_dekt_detail_impl(port, ptr, rust_vec_len, data_len)
         }
-        25 => wire__crate__api__jwxt__dekt__parse_dekt_list_impl(port, ptr, rust_vec_len, data_len),
-        26 => {
+        27 => wire__crate__api__jwxt__dekt__parse_dekt_list_impl(port, ptr, rust_vec_len, data_len),
+        28 => {
             wire__crate__api__jwxt__dekt__parse_dekt_total_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => {
+        29 => {
             wire__crate__api__jwxt__elective__parse_elective_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => wire__crate__api__jwxt__exam__parse_exam_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__jwxt__plan__parse_plan_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__jwxt__score__parse_score_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        30 => wire__crate__api__jwxt__exam__parse_exam_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__jwxt__plan__parse_plan_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__jwxt__score__parse_score_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__jwxt__score__parse_score_all_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__jwxt__score__parse_score_summary_impl(
+        34 => wire__crate__api__jwxt__score__parse_score_summary_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => {
+        35 => {
             wire__crate__api__jwxt__semester__parse_semester_impl(port, ptr, rust_vec_len, data_len)
         }
-        34 => {
+        36 => {
             wire__crate__api__jwxt__info__parse_student_info_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -2978,6 +3081,7 @@ mod io {
     use super::*;
     use crate::api::aescbc::*;
     use crate::api::session::*;
+    use crate::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
@@ -3058,6 +3162,7 @@ mod web {
     use super::*;
     use crate::api::aescbc::*;
     use crate::api::session::*;
+    use crate::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };

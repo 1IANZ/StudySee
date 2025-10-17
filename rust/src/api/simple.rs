@@ -30,19 +30,24 @@ pub async fn api_login(
     username: String,
     vpn_password: String,
     oa_password: String,
+    captcha: String,
 ) -> Result<String, String> {
-    let session = HttpSession::new();
+    let session_arc = SESSION.get().ok_or("SESSION 未初始化")?;
+    let mut guard = session_arc.lock().await;
+
+    let session = guard.as_ref().ok_or("SESSION 锁定失败")?;
 
     session
-        .complete_login(&username, &vpn_password, &oa_password)
-        .await?;
+        .complete_login(&username, &vpn_password, &oa_password, &captcha)
+        .await
+        .map_err(|e| format!("登录失败: {}", e))?;
 
-    let session_arc = SESSION.get().expect("SESSION 未初始化");
-    let mut guard = session_arc.lock().await;
-    *guard = Some(session);
+    // 这里通过克隆或移动来更新 guard 中的 session
+    *guard = Some(session.clone()); // 克隆 session（如果需要深拷贝）
 
     Ok("登录成功".to_string())
 }
+
 #[frb(dart_async)]
 pub async fn api_student_info() -> Result<StudentInfo, String> {
     let session_arc = SESSION.get().expect("SESSION 未初始化");
@@ -207,4 +212,24 @@ pub async fn api_dekt_detail(id: String) -> Result<DEKTDetail, String> {
         .await
         .map_err(|_| "读取响应失败".to_string())?;
     parse_dekt_detail(&res)
+}
+// #[frb(dart_async)]
+// pub async fn api_get_captcha() -> Result<Vec<u8>, String> {
+//     let session_arc = SESSION.get().ok_or("SESSION 未初始化")?;
+//     let guard = session_arc.lock().await;
+//     let session = guard.as_ref().ok_or("SESSION 锁定失败")?;
+//     session.get_captcha().await
+
+// }
+#[frb(dart_async)]
+pub async fn api_get_captcha() -> Result<Vec<u8>, String> {
+    let session_arc = SESSION.get().ok_or("SESSION 未初始化")?;
+    let mut guard = session_arc.lock().await;
+    if guard.is_none() {
+        let session = HttpSession::new();
+        *guard = Some(session);
+    }
+
+    let session = guard.as_ref().ok_or("SESSION 锁定失败")?;
+    session.get_captcha().await
 }

@@ -18,10 +18,12 @@ Future<String> apiLogin({
   required String username,
   required String vpnPassword,
   required String oaPassword,
+  required String captcha,
 }) => RustLib.instance.api.crateApiSimpleApiLogin(
   username: username,
   vpnPassword: vpnPassword,
   oaPassword: oaPassword,
+  captcha: captcha,
 );
 
 Future<StudentInfo> apiStudentInfo() =>
@@ -49,3 +51,6 @@ Future<DEKT> apiDekt() => RustLib.instance.api.crateApiSimpleApiDekt();
 
 Future<DEKTDetail> apiDektDetail({required String id}) =>
     RustLib.instance.api.crateApiSimpleApiDektDetail(id: id);
+
+Future<Uint8List> apiGetCaptcha() =>
+    RustLib.instance.api.crateApiSimpleApiGetCaptcha();
